@@ -30,6 +30,13 @@ focuses on pdf only.
 If you are new to that term have a look here:
 https://en.wikipedia.org/wiki/Metadata
 
+## Download
+
+```
+git clone https://github.com/c0decave/pdfgrab
+cd pdfgrab
+python3 pdfgrab.py -h
+```
 
 ## Usage
 
@@ -73,6 +80,14 @@ File: pdfgrab/ols2004v2.pdf
 --------------------------------------------------------------------------------
 ```
 
+### Directory Mode
+
+```
+./pdfgrab.py -F pdfgrab/
+```
+Will analyse all pdf's in that directory
+
+
 ### Google Search Mode
 ```
 # ./pdfgrab.py -s site:kernel.org
@@ -107,10 +122,24 @@ File: pdfgrab/bpf_global_data_and_static_keys.pdf
 /PTEX.Fullbanner This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) kpathsea version 6.2.2
 ```
 
+## TODO
+* json output
+* txt output
+* catch conn refused connections
+* set option for certificate verification, default is false
+* complete analyse.txt and seperated
+* clean up code
+* do more testing
+* add random useragent for google and website pdf gathering
+* ~~add decryption routine~~
+* ~~catch ssl exceptions~~
+
+
+
 ## Google
 
-Search: filetype:pdf site:com
-Results: 264.000.000
+* Search: filetype:pdf site:com
+* Results: 264.000.000
 
 ## Disclaimer
 
