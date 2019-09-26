@@ -123,14 +123,14 @@ File: pdfgrab/bpf_global_data_and_static_keys.pdf
 ```
 
 ## TODO
-* json output
-* txt output
+* json file-output
+* txt file-output
 * catch conn refused connections
-* set option for certificate verification, default is false
+* ~~set option for certificate verification, default is true~~
 * complete analyse.txt and seperated
 * clean up code
 * do more testing
-* add random useragent for google and website pdf gathering
+* ~~add random useragent for google and website pdf gathering~~
 * ~~add decryption routine~~
 * ~~catch ssl exceptions~~
 
