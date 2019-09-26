@@ -10,10 +10,16 @@
 # TODO
 # * json output
 # * txt output
-# * catch ssl exceptions
 # * catch conn refused connections
 # * set option for certificate verification, default is false
+# * complete analyse.txt and seperated
+# * clean up code
+# * do more testing
+# * add random useragent for google and website pdf gathering
+#
+# Done
 # * add decryption routine
+# * catch ssl exceptions
 
 import os
 import sys
@@ -34,6 +40,61 @@ def url_strip(url):
 	url = url.rstrip("\n")
 	url = url.rstrip("\r")
 	return url
+
+
+def get_DocInfo(filename, filehandle):
+
+	fh = filehandle
+	try:
+		extract = fh.documentInfo
+	except pdf.utils.PdfReadError as e:
+		print('Error: %s' % e)
+		return -1
+
+	print('-'*80)
+	print('File: %s' % filename)
+	for k in extract.keys():
+		edata = '%s %s' % (k,extract[k])
+		print(edata)
+		print
+	print('-'*80)
+
+
+def decrypt_empty_pdf(filename):
+
+	fr = pdf.PdfFileReader(open(filename,"rb"))
+	try:
+		fr.decrypt('')
+	except NotImplementedError as e:
+		print('Error: %s' % (e))
+		print('Only algorithm code 1 and 2 are supported')
+		return -1
+	return fr
+	
+
+def check_encryption(filename):
+	''' basic function to check if file is encrypted 
+	'''
+
+	print(filename)
+	try:
+		fr = pdf.PdfFileReader(open(filename,"rb"))
+	except pdf.utils.PdfReadError as e:
+		print('Error: %s' % e)
+		return -1
+
+	if fr.getIsEncrypted()==True:
+		print('[i] File encrypted %s' % filename)
+		nfr = decrypt_empty_pdf(filename)
+		if nfr != -1:
+			get_DocInfo(filename,nfr)
+
+	else:
+		get_DocInfo(filename,fr)
+
+	#fr.close()
+
+	return True
 
 def find_name(pdf):
 	''' simply parses the urlencoded name and extracts the storage name
@@ -76,7 +137,12 @@ def store_pdf(url,data,outdir):
 	''' storing the downloaded pdf data '''
 	name = find_name(url)
 	save = "%s/%s" % (outdir,name)
-	f = open(save,"wb")
+	try:
+		f = open(save,"wb")
+	except OSError as e:
+		print('Error: %s' % (e))
+		return -1
+
 	ret=f.write(data)
 	print('[+] Written %d bytes for File: %s' % (ret,save))
 	f.close()
@@ -87,6 +153,9 @@ def store_pdf(url,data,outdir):
 def _parse_pdf(filename):
 	''' the real parsing function '''
 
+	check_encryption(filename)
+	return True
+
 	print('[+] Opening %s' % filename)
 	pdfile = open(filename,'rb')
 
@@ -95,20 +164,9 @@ def _parse_pdf(filename):
 	except pdf.utils.PdfReadError as e:
 		print('[-] Error: %s' % (e))
 		return
+	
+	return pdfile
 
-	try:
-		extract = h.documentInfo
-	except pdf.utils.PdfReadError as e:
-		print('Error: %s' % e)
-		return -1
-
-	print('-'*80)
-	print('File: %s' % filename)
-	for k in extract.keys():
-		edata = '%s %s' % (k,extract[k])
-		print(edata)
-		print
-	print('-'*80)
 
 def parse_single_pdf(filename):
 	''' single parse function '''
