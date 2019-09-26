@@ -141,7 +141,7 @@ def search_pdf(search, sargs):
 	query='%s filetype:pdf' % search
 	#print(query)
 	urls = []
-	for url in gs.search(query,stop=sargs):
+	for url in gs.search(query,num=20,stop=sargs):
 		print(url)
 		urls.append(url)
 	
@@ -168,9 +168,9 @@ def run(args):
 
 	elif args.search:
 		search = args.search
+		sargs = args.search_stop
 		#print(args)
 		print('[+] Seek and de...erm...analysing %s' % (search))
-		sargs=10
 		seek_and_analyse(search,sargs,outdir)
 	
 	elif args.files_dir:
@@ -197,7 +197,7 @@ def main():
 	parser.add_argument('-f','--file',action='store',dest='file_single',required=False,help="specify local path of pdf for analysis",default=None)
 	parser.add_argument('-F','--files-dir',action='store',dest='files_dir',required=False,help="specify local path of *directory* with pdf *files* for analysis",default=None)
 	parser.add_argument('-s','--search',action='store',dest='search',required=False,help="specify domain or tld to scrape for pdf-files",default=None)
-	parser.add_argument('-sn','--search-number',action='store',dest='search_number',required=False,help="specify how many files are searched",default=10,type=int)
+	parser.add_argument('-sn','--search-number',action='store',dest='search_stop',required=False,help="specify how many files are searched",default=10,type=int)
 
 	args = parser.parse_args()
 	run(args)
