@@ -10,6 +10,10 @@
 # TODO
 # * json output
 # * txt output
+# * catch ssl exceptions
+# * catch conn refused connections
+# * set option for certificate verification, default is false
+# * add decryption routine
 
 import os
 import sys
@@ -40,7 +44,7 @@ def find_name(pdf):
 	name = pdf.split("/")
 	a = len(name)
 	name = name[a-1]
-	print(name)
+	#print(name)
 
 	return name
 
@@ -49,14 +53,23 @@ def make_directory(outdir):
 	try:
 		os.mkdir(outdir)
 	except:
-		print("[W] mkdir, some error, directory probably exists")
+		#print("[W] mkdir, some error, directory probably exists")
+		pass
 
 def download_pdf(url, header_data):
 	''' downloading the pdfile for later analysis '''
-	req = requests.get(url,headers=header_data)
-	data = req.content
-	#data = req.text
-	print(len(data))
+	try:
+		req = requests.get(url,headers=header_data,verify=True)
+		#req = requests.get(url,headers=header_data,verify=False)
+		data = req.content
+	except requests.exceptions.SSLError as e:
+		print('Error: %s' % e)
+		return -1
+	except:
+		print('Error: Probably something wrong with remote server')
+		return -1
+
+	#print(len(data))
 	return data
 
 def store_pdf(url,data,outdir):
@@ -83,7 +96,11 @@ def _parse_pdf(filename):
 		print('[-] Error: %s' % (e))
 		return
 
-	extract = h.documentInfo
+	try:
+		extract = h.documentInfo
+	except pdf.utils.PdfReadError as e:
+		print('Error: %s' % e)
+		return -1
 
 	print('-'*80)
 	print('File: %s' % filename)
@@ -102,8 +119,9 @@ def grab_url(url, outdir):
 		just one pdf and analysing it
 	'''
 	data = download_pdf(url,None)
-	savepath = store_pdf(url, data, outdir)
-	_parse_pdf(savepath)
+	if data != -1:
+		savepath = store_pdf(url, data, outdir)
+		_parse_pdf(savepath)
 
 	return
 
@@ -123,7 +141,7 @@ def search_pdf(search, sargs):
 	query='%s filetype:pdf' % search
 	#print(query)
 	urls = []
-	for url in gs.search(query,stop=10):
+	for url in gs.search(query,stop=sargs):
 		print(url)
 		urls.append(url)
 	
@@ -150,7 +168,7 @@ def run(args):
 
 	elif args.search:
 		search = args.search
-		print(args)
+		#print(args)
 		print('[+] Seek and de...erm...analysing %s' % (search))
 		sargs=10
 		seek_and_analyse(search,sargs,outdir)
