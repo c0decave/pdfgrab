@@ -66,7 +66,7 @@ python3 pdfgrab.py -h
 
 ## Usage
 
-Those are your options major options:
+Those are your major options:
 * grab pdf from url and analyse
 * search site for pdfs via google, grab and analyse
 * analyse a local pdf
