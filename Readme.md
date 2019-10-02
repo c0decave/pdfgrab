@@ -6,8 +6,8 @@
 
 This is a reborn tool, used during the epoche dinosaurs were traipsing the earth. 
 Basically it analyses PDF files for Metadata. You can direct it to a file or directory with pdfs. 
-You can show it the url of a pdf or use the integrated googlesearch (thanx to mario vilas) class
-to search for pdfs at target site, download and analyse them
+You can show it the url of a pdf or use the integrated googlesearch (thanx to mario vilas class)
+to search for pdfs at target site, download and analyse them.
 
 ## What information can be gathered?
 
