@@ -42,7 +42,7 @@ security part of it. Depending on your target you will get information about:
 
 ## Is it failproof?
 
-Not at all. Please note that metadata as every other data is just written to that file. So i can be changed before it is uploaded. Said that, the amount of companies really changing that sort of data is maybe at 20%. Also you will recognize if it is empty or alike.
+Not at all. Please note that metadata as every other data is just written to that file. So it can be changed before it is uploaded. Said that, the amount of companies really changing that sort of data is maybe at 20%. Also you will recognize if it is empty or alike.
 
 ## How does it work?
 
