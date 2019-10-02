@@ -1,5 +1,7 @@
 # pdfgrab
 
+* Version 0.4.4
+
 ## What is it?
 
 This is a reborn tool, used during the epoche dinosaurs were traipsing the earth. 
@@ -22,13 +24,37 @@ However, common are the following things:
 
 and some more :)
 
+## What is this for anyways?
+
+Well, this can be used for a range of things. However, i will only focus on the 
+security part of it. Depending on your target you will get information about:
+
+* used software in company xyz
+	* possible version numbers
+		* this will help you to identify existing vulnerabilities
+	* sometimes pdfs are rendered new, for instance on uploads
+		* now you can figure what the rendering engine is and find bugs in it
+* who is the author of documents
+	* sometimes usernames are users of the OS itself
+		* congrats you just found by analysing a pdf an existing username in the domain
+		* combine the information with the first part, you know which user uses which software
+* passwords ... do i need to say more?
+
+## Is it failproof?
+
+Not at all. Please note that metadata as every other data is just written to that file. So i can be changed before it is uploaded. Said that, the amount of companies really changing that sort of data is maybe at 20%. Also you will recognize if it is empty or alike.
+
 ## How does it work?
 
 Every more complex filetype above .txt or alike uses metadata for convinience, customer support or only to spread it has been used.
 There is a lot information about metadata in different sort of files like pictures, documents, videos, music online. This tool
 focuses on pdf only. 
 If you are new to that term have a look here:
-https://en.wikipedia.org/wiki/Metadata
+* https://en.wikipedia.org/wiki/Metadata
+
+Also, if you are interested in a real pdf analysis, this tool will only do the basics for you. It has not been written to analyse bad, malware or even interesting files. It's purpose is to give you an idea what is used at target xyz. 
+If you are looking for more in-depth analysis i recommend the tools of Didier Stevens:
+* https://blog.didierstevens.com/programs/pdf-tools/
 
 ## Download
 
@@ -123,13 +149,18 @@ File: pdfgrab/bpf_global_data_and_static_keys.pdf
 ```
 
 ## TODO
-* json file-output
-* txt file-output
+* ~~fixed some bugs with *uncommon* pdfs~~
+* add socks proxy
+* ~~add queues~~ for threading
+* ~~add url list to output~~
+* ~~json file-output~~
+* ~~txt file-output~~
 * catch conn refused connections
 * ~~set option for certificate verification, default is true~~
-* complete analyse.txt and seperated
+* ~~complete analyse.txt~~
 * clean up code
-* do more testing
+* ~~do more testing~~
+	* do even more testing
 * ~~add random useragent for google and website pdf gathering~~
 * ~~add decryption routine~~
 * ~~catch ssl exceptions~~
