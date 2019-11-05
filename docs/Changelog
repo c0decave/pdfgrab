@@ -1,0 +1,20 @@
+Changelog
+=========
+
+Version 4.7
+-----------
+
+* added html out
+* added xmp meta testing
+
+Version 4.6
+-----------
+
+* added help for non-argument given at cli
+* added googlesearch lib
+
+Version 4.5
+-----------
+
+* exported helper functions to libs/helper.py
+* added libs/liblog.py

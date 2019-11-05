@@ -1,0 +1,4 @@
+* add xmp meta to output files
+* code reordering
+* clean up parsing functions
+* add report formats
