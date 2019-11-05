@@ -1,6 +1,6 @@
 # pdfgrab
 
-* Version 0.4.4
+* Version 0.4.7
 
 ## What is it?
 
@@ -8,6 +8,14 @@ This is a reborn tool, used during the epoche dinosaurs were traipsing the earth
 Basically it analyses PDF files for Metadata. You can direct it to a file or directory with pdfs. 
 You can show it the url of a pdf or use the integrated googlesearch (thanx to mario vilas class)
 to search for pdfs at target site, download and analyse them.
+
+## What is new in 0.4.7 release?
+
+* Added support for html output file, this will be placed in the outdir path and is more clear then a text or json file
+* Added basic logging support, logfile is placed in pdfgrab.py directory
+* Reordered Codebase, exported functionality to some libraries
+* PDF XMP Metadata is grabbed now as well, but not yet saved in output files
+* added docs/ section with Changelog and Todo
 
 ## What information can be gathered?
 
@@ -147,25 +155,6 @@ File: pdfgrab/bpf_global_data_and_static_keys.pdf
 /Trapped /False
 /PTEX.Fullbanner This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) kpathsea version 6.2.2
 ```
-
-## TODO
-* ~~fixed some bugs with *uncommon* pdfs~~
-* add socks proxy
-* ~~add queues~~ for threading
-* ~~add url list to output~~
-* ~~json file-output~~
-* ~~txt file-output~~
-* catch conn refused connections
-* ~~set option for certificate verification, default is true~~
-* ~~complete analyse.txt~~
-* clean up code
-* ~~do more testing~~
-	* do even more testing
-* ~~add random useragent for google and website pdf gathering~~
-* ~~add decryption routine~~
-* ~~catch ssl exceptions~~
-
-
 
 ## Google
 
