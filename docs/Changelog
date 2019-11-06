@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.8 Bugfix-PreRelease
+-----------------------------
+
+* catching google to many requests
+* catching urlopen dns not resolveable error
+* fixing nasty bug in store_pdf/find_name
+* fixing zero size pdf error
+* extra logging
+
 Version 4.7
 -----------
 

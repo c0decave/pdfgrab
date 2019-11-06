@@ -1,6 +1,6 @@
 # pdfgrab
 
-* Version 0.4.7
+* Version 0.4.8-Pre
 
 ## What is it?
 
@@ -8,6 +8,14 @@ This is a reborn tool, used during the epoche dinosaurs were traipsing the earth
 Basically it analyses PDF files for Metadata. You can direct it to a file or directory with pdfs. 
 You can show it the url of a pdf or use the integrated googlesearch (thanx to mario vilas class)
 to search for pdfs at target site, download and analyse them.
+
+## What is new in 0.4.8 bug fix pre-release?
+
+* catching google error at too many requests
+* catching dns resolve urlopen error at googlelib
+* fixing annoying bug in regard of pdfs behind urls like http://host/pdf/
+* fixing zero size pdf error(online linked pdfs which are not accessable)
+* added some logging
 
 ## What is new in 0.4.7 release?
 

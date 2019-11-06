@@ -22,9 +22,12 @@ def search_pdf(search, args):
             urls.append(url)
 
     except urllib.error.HTTPError as e:
-        print('Error: %s' % e)
-        return -1
+        #print('Error: %s' % e)
+        return False,e
+
+    except urllib.error.URLError as e:
+        return False,e
 
 
-    return urls
+    return True,urls
 

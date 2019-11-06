@@ -27,9 +27,9 @@ from IPython import embed
 
 # some variables in regard of the tool itself
 name = 'pdfgrab'
-version = '0.4.7'
+version = '0.4.8-Pre'
 author = 'dash'
-date = '2019'
+date = 'November 2019'
 
 # queues for processing
 # this queue holds the URL locations of files to download
@@ -114,7 +114,7 @@ def get_xmp_meta_data(filename, filehandle):
         xmp_meta =  fh.getXmpMetadata()
 
     except xml.parsers.expat.ExpatError as e:
-        print('Error: %s' % e)
+        logger.warning('get_xmp_meta_data error {0}'.format(e))
         err_dict = {'error': str(e)}
         return -1
 
@@ -122,8 +122,15 @@ def get_xmp_meta_data(filename, filehandle):
         process_queue_data(filename, err_dict, 'doc_xmp_info')
 
     if xmp_meta != None:
-        print('xmp_meta: {0} {1} {2} {3} {4} {5}'.format(xmp_meta.pdf_producer,xmp_meta.pdf_pdfversion,xmp_meta.dc_contributor,xmp_meta.dc_creator,xmp_meta.dc_date,xmp_meta.dc_subject))
-        xmp_dict = {}
+        try:
+
+            print('xmp_meta: {0} {1} {2} {3} {4} {5}'.format(xmp_meta.pdf_producer,xmp_meta.pdf_pdfversion,xmp_meta.dc_contributor,xmp_meta.dc_creator,xmp_meta.dc_date,xmp_meta.dc_subject))
+        #print('xmp_meta cache: {0}'.format(xmp_meta.cache))
+        #print('xmp_meta custom properties: {0}'.format(xmp_meta.custom_properties))
+        #embed()
+        except AttributeError as e:
+            logger.warning('xmp_meta print {0}'.format(e))
+            return False
 
     return xmp_dict
 
@@ -152,12 +159,12 @@ def get_DocInfo(filename, filehandle):
         extract = fh.documentInfo
 
     except pdf.utils.PdfReadError as e:
-        print('Error: %s' % e)
+        logger.warning('get_doc_info {0}'.format(e))
         err_dict = {'error': str(e)}
         return -1
 
     except PyPDF2.utils.PdfReadError as e:
-        print('Error: %s' % e)
+        logger.warning('get_doc_info {0}'.format(e))
         err_dict = {'error': str(e)}
         return -1
 
@@ -185,7 +192,7 @@ def get_DocInfo(filename, filehandle):
         print('-' * 80)
 
     except PyPDF2.utils.PdfReadError as e:
-        print('Error: %s' % e)
+        logger.warning('get_doc_info {0}'.format(e))
         err_dict = {'error': str(e)}
         process_queue_data(filename, err_dict, 'doc_info')
         return -1
@@ -204,8 +211,7 @@ def decrypt_empty_pdf(filename):
         fr.decrypt('')
 
     except NotImplementedError as e:
-        # print('Error: %s' % (e))
-        print('Error: File: %s encrypted. %s' % (filename, str(e)))
+        logger.warning('decrypt_empty_pdf {0}{1}'.format(filename,e))
         return -1
     return fr
 
@@ -214,11 +220,12 @@ def check_encryption(filename):
     ''' basic function to check if file is encrypted
 	'''
 
-    #	print(filename)
+    print(filename)
     try:
         fr = pdf.PdfFileReader(open(filename, "rb"))
+        print(fr)
     except pdf.utils.PdfReadError as e:
-        print('Error: %s' % e)
+        logger.warning('check encryption {0}'.format(e))
         return -1
 
     if fr.getIsEncrypted() == True:
@@ -250,15 +257,15 @@ def download_pdf(url, args, header_data):
         status_code = req.status_code
 
     except requests.exceptions.SSLError as e:
-        print('Error: %s' % e)
+        logger.warning('download pdf {0}{1}'.format(url,e))
         return -1
 
     except:
-        print('Error: Probably something wrong with remote server')
+        logger.warning('download pdf, something wrong with remote server? {0}'.format(url))
         return -1
 
     if status_code == 403:
-        print('%s http/403 Forbidden' % (url))
+        logger.warning('download pdf, 403 Forbidden {0}'.format(url))
         return -1
 
     # print(len(data))
@@ -269,8 +276,11 @@ def store_pdf(url, data, outdir):
     ''' storing the downloaded pdf data
     '''
 
-    logger.info('Store pdf')
+    logger.info('Store pdf {0}'.format(url))
     name = find_name(url)
+    #logger.warning(url)
+    #logger.warning(name)
+    #logger.warning(outdir)
 
     # only allow stored file a name with 50 chars
     if len(name) > 50:
@@ -282,12 +292,18 @@ def store_pdf(url, data, outdir):
     try:
         f = open(save, "wb")
     except OSError as e:
-        print('Error: %s' % (e))
+        logger.warning('store_pdf {0}'.format(e))
         return -1
 
     ret = f.write(data)
     logger.info('Written {0} bytes for file: {1}'.format(ret,save))
     f.close()
+
+    if ret == 0:
+        logger.warning('Written {0} bytes for file: {1}'.format(ret,save))
+        return save
+        #return -1
+
 
     # return the savepath
     return save
@@ -296,8 +312,13 @@ def store_pdf(url, data, outdir):
 def _parse_pdf(filename):
     ''' the real parsing function '''
 
-    ret = check_encryption(filename)
-    return ret
+    logger.warning('{0}'.format(filename))
+    if check_file_size(filename):
+        ret = check_encryption(filename)
+        return ret
+    else:
+        logger.warning('Filesize is 0 bytes at file: {0}'.format(filename))
+        return False
 
 
 def grab_url(url, args, outdir):
@@ -318,8 +339,16 @@ def seek_and_analyse(search, args, outdir):
         them together
     '''
     # use the search function of googlesearch to get the results
-    urls=search_pdf(search, args)
-    for item in urls:
+    code, values=search_pdf(search, args)
+    if not code:
+        if values.code == 429:
+            logger.warning('[-] Too many requests, time to change ip address or use proxychains')
+        else:
+            logger.warning('Google returned error {0}'.format(values))
+
+        return -1
+        
+    for item in values:
         filename = find_name(item)
         process_queue_data(filename, item, 'url')
 
@@ -335,6 +364,7 @@ def seek_and_analyse(search, args, outdir):
             url = item['url']
             grab_url(url, args, outdir)
 
+    return True
 
 
 def run(args):
@@ -369,7 +399,8 @@ def run(args):
     elif args.search:
         search = args.search
         logger.info('Seek and analyse {0}'.format(search))
-        seek_and_analyse(search, args, outdir)
+        if not seek_and_analyse(search, args, outdir):
+            return -1
 
     elif args.files_dir:
         directory = args.files_dir

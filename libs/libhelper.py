@@ -2,6 +2,14 @@ import os
 import sys
 from Crypto.Hash import SHA256
 
+def check_file_size(filename):
+    ''' simply check if byte size is bigger than 0 bytes
+    '''
+    fstat = os.stat(filename)
+    if fstat.st_size == 0:
+        return False
+    return True
+
 def make_directory(outdir):
     ''' naive mkdir function '''
     try:
@@ -27,11 +35,21 @@ def find_name(pdf):
 		i would not be surprised this naive approach can lead to fuckups
 	'''
 
+    name = ''
     # find the name of the file
-    name = pdf.split("/")
-    a = len(name)
-    name = name[a - 1]
-    # print(name)
+    # 
+    name_list = pdf.split("/")
+    len_list = len(name)
+    # ugly magic ;-)
+    # what happens is, that files can also be behind urls like:
+    # http://host/pdf/
+    # so splitting up the url and always going with the last item after slash
+    # can result in that case in an empty name, so we go another field in the list back
+    # and use this as the name
+    if name_list[len_list - 1] == '':
+        name = name_list[len_list - 2]
+    else:
+        name = name_list[len_list - 1]
 
     return name
 
