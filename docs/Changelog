@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 4.9
+-----------
+
+* exported reporting methods to libreport.py
+* added optargs for disabling different report methods
+* made the html report a bit more shiny
+* added function for generating html report after analysis
+* exported requests and storing data to new library
+* code fixes and more clear error handling
+* removed necessary site: parameter at search flag -s
+* updated readme
+* -s flag now acceppts several domains
+* console logging more clean
+
 Version 4.8 Bugfix-PreRelease
 -----------------------------
 

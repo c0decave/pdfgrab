@@ -1,6 +1,6 @@
 # pdfgrab
 
-* Version 0.4.8-Pre
+* Version 0.4.9
 
 ## What is it?
 
@@ -9,21 +9,18 @@ Basically it analyses PDF files for Metadata. You can direct it to a file or dir
 You can show it the url of a pdf or use the integrated googlesearch (thanx to mario vilas class)
 to search for pdfs at target site, download and analyse them.
 
-## What is new in 0.4.8 bug fix pre-release?
+## What is new in 0.4.9?
 
-* catching google error at too many requests
-* catching dns resolve urlopen error at googlelib
-* fixing annoying bug in regard of pdfs behind urls like http://host/pdf/
-* fixing zero size pdf error(online linked pdfs which are not accessable)
-* added some logging
-
-## What is new in 0.4.7 release?
-
-* Added support for html output file, this will be placed in the outdir path and is more clear then a text or json file
-* Added basic logging support, logfile is placed in pdfgrab.py directory
-* Reordered Codebase, exported functionality to some libraries
-* PDF XMP Metadata is grabbed now as well, but not yet saved in output files
-* added docs/ section with Changelog and Todo
+* exported reporting methods to libreport.py
+* added optargs for disabling different report methods
+* made the html report a bit more shiny
+* added function for generating html report after analysis
+* exported requests and storing data to new library
+* code fixes and more clear error handling
+* removed necessary site: parameter at search flag -s
+* updated readme
+* -s flag now acceppts several domains
+* console logging more clean
 
 ## What information can be gathered?
 
@@ -132,7 +129,7 @@ Will analyse all pdf's in that directory
 
 ### Google Search Mode
 ```
-# ./pdfgrab.py -s site:kernel.org
+# ./pdfgrab.py -s kernel.org
 ```
 Result:
 ```
@@ -163,6 +160,26 @@ File: pdfgrab/bpf_global_data_and_static_keys.pdf
 /Trapped /False
 /PTEX.Fullbanner This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) kpathsea version 6.2.2
 ```
+
+### Google Search Mode, several domains
+```
+# ./pdfgrab.py -s example.com,example.us
+```
+
+### Reporting
+
+pdfgrab outputs the information in different formats. If not disabled by one of the reporting flags (see -h) you will
+find in the output directory:
+
+* html report
+* text report
+* text url list
+* json data
+* json url list
+
+### Logging
+
+pdfgrab creates a logfile in the running directory called "pdfgrab.log"
 
 ## Google
 

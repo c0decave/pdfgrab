@@ -22,12 +22,14 @@ from PyPDF2 import pdf
 from libs.liblog import logger
 from libs.libhelper import *
 from libs.libgoogle import *
+from libs.libreport import *
+from libs.librequest import grab_run
 
 from IPython import embed
 
 # some variables in regard of the tool itself
 name = 'pdfgrab'
-version = '0.4.8-Pre'
+version = '0.4.9'
 author = 'dash'
 date = 'November 2019'
 
@@ -243,72 +245,6 @@ def check_encryption(filename):
 
     return True
 
-
-def download_pdf(url, args, header_data):
-    ''' downloading the pdfile for later analysis '''
-
-    # check the remote tls certificate or not?
-    cert_check = args.cert_check
-
-    try:
-        req = requests.get(url, headers=header_data, verify=cert_check)
-        # req = requests.get(url,headers=header_data,verify=False)
-        data = req.content
-        status_code = req.status_code
-
-    except requests.exceptions.SSLError as e:
-        logger.warning('download pdf {0}{1}'.format(url,e))
-        return -1
-
-    except:
-        logger.warning('download pdf, something wrong with remote server? {0}'.format(url))
-        return -1
-
-    if status_code == 403:
-        logger.warning('download pdf, 403 Forbidden {0}'.format(url))
-        return -1
-
-    # print(len(data))
-    return data
-
-
-def store_pdf(url, data, outdir):
-    ''' storing the downloaded pdf data
-    '''
-
-    logger.info('Store pdf {0}'.format(url))
-    name = find_name(url)
-    #logger.warning(url)
-    #logger.warning(name)
-    #logger.warning(outdir)
-
-    # only allow stored file a name with 50 chars
-    if len(name) > 50:
-        name = name[:49] + '.pdf'
-    # print(len(name))
-
-    save = "%s/%s" % (outdir, name)
-
-    try:
-        f = open(save, "wb")
-    except OSError as e:
-        logger.warning('store_pdf {0}'.format(e))
-        return -1
-
-    ret = f.write(data)
-    logger.info('Written {0} bytes for file: {1}'.format(ret,save))
-    f.close()
-
-    if ret == 0:
-        logger.warning('Written {0} bytes for file: {1}'.format(ret,save))
-        return save
-        #return -1
-
-
-    # return the savepath
-    return save
-
-
 def _parse_pdf(filename):
     ''' the real parsing function '''
 
@@ -320,26 +256,18 @@ def _parse_pdf(filename):
         logger.warning('Filesize is 0 bytes at file: {0}'.format(filename))
         return False
 
-
-def grab_url(url, args, outdir):
-    ''' function keeping all the steps for the user call of grabbing
-	just one pdf and analysing it
-    '''
-    header_data = {'User-Agent': get_random_agent()}
-    data = download_pdf(url, args, header_data)
-    if data != -1:
-        savepath = store_pdf(url, data, outdir)
-        _parse_pdf(savepath)
-
-    return
-
-
 def seek_and_analyse(search, args, outdir):
     ''' function for keeping all the steps of searching for pdfs and analysing
         them together
     '''
+    # check how many hits we got
+    # seems like the method is broken in googlsearch library :(
+    #code, hits = hits_google(search,args)
+    #if code:
+    #    print('Got {0} hits'.format(hits))
+
     # use the search function of googlesearch to get the results
-    code, values=search_pdf(search, args)
+    code, values=search_google(search, args)
     if not code:
         if values.code == 429:
             logger.warning('[-] Too many requests, time to change ip address or use proxychains')
@@ -362,7 +290,11 @@ def seek_and_analyse(search, args, outdir):
             item = url_q.get()
             # print(item)
             url = item['url']
-            grab_url(url, args, outdir)
+            rd_grabrun = grab_run(url, args, outdir)
+            code = rd_grabrun['code']
+            savepath = rd_grabrun['data']
+            if code:
+                _parse_pdf(savepath)
 
     return True
 
@@ -372,6 +304,9 @@ def run(args):
     # initialize logger
     logger.info('{0} Started'.format(name))
 
+    # create some variables
+
+
     # outfile name
     if args.outfile:
         out_filename = args.outfile
@@ -380,6 +315,7 @@ def run(args):
 
     # specify output directory
     outdir = args.outdir
+
 
     # create output directory
     make_directory(outdir)
@@ -417,68 +353,43 @@ def run(args):
                 fpath = '%s/%s' % (directory, f)
                 _parse_pdf(fpath)
 
+    # simply generate html report from json outfile
+    elif args.gen_html_report:
+        fr = open(args.gen_html_report,'r')
+        analysis_dict = json.loads(fr.read())
+        if create_html_report(analysis_dict, outdir,out_filename):
+            logger.info('Successfully created html report') 
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
     else:
         print('[-] Dunno what to do, bro. Use help. {0} -h'.format(sys.argv[0]))
+        sys.exit(1)
 
-    # move analysis dictionary in queue back to dictionary
-    analysis_dict = {}
-    while ana_q.empty() == False:
-        item = ana_q.get()
-        # print('item ', item)
-        analysis_dict.update(item)
+    # creating the analysis dictionary for reporting
+    analysis_dict = prepare_analysis_dict(ana_q)
 
-    #print('dict:',analysis_dict)
-    # ana_q is empty now
+    # lets go through the different reporting types
+    if args.report_txt:
+        if create_txt_report(analysis_dict, outdir,out_filename):
+            logger.info('Successfully created txt report') 
 
-    # create txt output
-    sep = '-' * 80 + '\n'
-    txtout = "%s/%s.txt" % (outdir, out_filename)
-    fwtxt = open(txtout, 'w')
-    # print(analysis_dict)
-    for k in analysis_dict.keys():
-        fwtxt.write(sep)
-        fname = 'File: %s\n' % (analysis_dict[k]['filename'])
-        ddata = analysis_dict[k]['data']
-        fwtxt.write(fname)
-        for kdata in ddata.keys():
-            metatxt = '%s:%s\n' % (kdata, ddata[kdata])
-            fwtxt.write(metatxt)
-        fwtxt.write(sep)
-    fwtxt.close()
+    if args.report_json:
+        if create_json_report(analysis_dict, outdir,out_filename):
+            logger.info('Successfully created json report') 
 
-    # create json output
-    jsonout = "%s/%s.json" % (outdir, out_filename)
-    fwjson = open(jsonout, 'w')
+    if args.report_html:
+        if create_html_report(analysis_dict, outdir,out_filename):
+            logger.info('Successfully created html report') 
 
-    # print(analysis_dict)
-    jdata = json.dumps(analysis_dict)
-    fwjson.write(jdata)
-    fwjson.close()
+    if args.report_url_txt:
+        if create_url_txt(url_d, outdir,out_filename):
+            logger.info('Successfully created txt url report') 
 
-    # create html from json
-    htmlout = "%s/%s.html" % (outdir, out_filename)
-    fwhtml = open(htmlout,'w')
-    #print(jdata)
-    html = json2html.convert(json = jdata)
-    fwhtml.write(html)
-    fwhtml.close()
-    
-
-    # create url savefile
-    # print('url_d: ', url_d)
-    jsonurlout = "%s/%s_url.json" % (outdir, out_filename)
-    fwjson = open(jsonurlout, 'w')
-    jdata = json.dumps(url_d)
-    fwjson.write(jdata)
-    fwjson.close()
-
-    txtout = "%s/%s_url.txt" % (outdir, out_filename)
-    fwtxt = open(txtout, 'w')
-    for k in url_d.keys():
-        ddata = url_d[k]
-        metatxt = '%s:%s\n' % (ddata['url'], ddata['filename'])
-        fwtxt.write(metatxt)
-    fwtxt.close()
+    if args.report_url_json:
+        if create_url_json(url_d, outdir,out_filename):
+            logger.info('Successfully created json url report') 
 
     return 42
 
@@ -504,8 +415,14 @@ def main():
                         help="specify domain or tld to scrape for pdf-files", default=None)
     parser.add_argument('-sn', '--search-number', action='store', dest='search_stop', required=False,
                         help="specify how many files are searched", default=10, type=int)
-    parser.add_argument('-z', '--disable-cert-check', action='store_false', dest='cert_check', required=False,
-                        help="if the target domain(s) run with old or bad certificates", default=True)
+    parser.add_argument('-z', '--disable-cert-check', action='store_false', dest='cert_check', required=False,help="if the target domain(s) run with old or bad certificates", default=True)
+                        
+    parser.add_argument('-ghr', '--gen-html-report', action='store', dest='gen_html_report', required=False,help="If you want to generate the html report after editing the json outfile (parameter: pdfgrab_analysis.json)")
+    parser.add_argument('-rtd', '--report-text-disable', action='store_false', dest='report_txt', required=False,help="Disable txt report",default=True)
+    parser.add_argument('-rjd', '--report-json-disable', action='store_false', dest='report_json', required=False,help="Disable json report",default=True)
+    parser.add_argument('-rhd', '--report-html-disable', action='store_false', dest='report_html', required=False,help="Disable html report",default=True)
+    parser.add_argument('-rutd', '--report-url-text-disable', action='store_false', dest='report_url_txt', required=False,help="Disable url txt report",default=True)
+    parser.add_argument('-rujd', '--report-url-json-disable', action='store_false', dest='report_url_json', required=False,help="Disable url json report",default=True)
 
     if len(sys.argv)<2:
         parser.print_help(sys.stderr)
